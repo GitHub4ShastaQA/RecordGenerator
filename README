@@ -1,0 +1,25 @@
+NAME
+       genRecord − Generate test data
+
+SYNOPSIS
+               genRecord −c configFile.yaml −o database.sqlite:tableName −n 50
+
+DESCRIPTION
+       This program is for generating test data. It takes the given config file
+       and uses it to generate records of data.
+
+       The config file is a yaml file that contains an array of field
+       definitions. In general the field definitions consist of an array that
+       contains a field name or array of field names, a generator name, and
+       arguments to the generator. The fields are generated in the order that
+       they are specified. The results of earlier fields are accesible for use
+       as arguments to later generators. They are accessed using the $
+       notation where $fieldName is replaced with the value of the field.
+
+AUTHOR
+       James Switzer <jswitzer@shastaqa.com>
+
+COPYRIGHT
+       Copyright 2013 ShastaQA
+
+       This program is distributed under the terms of the GNU General Public License

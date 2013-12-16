@@ -1,0 +1,8 @@
+Things that need to be fixed or improved in no paticular order:
+
+* Better documentation
+* A test suite
+* Create a Modual API with wrapper script for legacy users
+* Improve output system and add more target formats
+* Better error handling and reporting
+* More data generators

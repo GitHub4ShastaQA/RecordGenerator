@@ -103,9 +103,23 @@ sets the output method
 sub output
 {
 	my $self = shift;
+	my $type = shift;
 	
-	
-	
+	if($type eq 'custom')
+	{
+		my($setup, $output, $teardown) = @{$_[0]};
+		die unless ref $setup eq 'CODE';
+		die unless ref $output eq 'CODE';
+		die unless ref $teardown eq 'CODE';
+		
+		$self->{'setup'}    = $setup;
+		$self->{'output'}   = $output;
+		$self->{'teardown'} = $teardown;
+	} else {
+		
+		#FIXME configure output subs
+		
+	}
 	return $self;
 }
 
@@ -175,6 +189,9 @@ sub value
 
 =head3 generate($min[, $max])
 
+Generates between $min and $max rows of data. If $max is ommited it generates 
+exactly $min rows of data. What is returned depends on the output method.
+
 =cut
 
 sub generate
@@ -196,6 +213,7 @@ sub _generate
 {
 	my $self = shift;
 	my $count = shift;
+	my @output;
 	
 	for(my $i=0; $i<$count; $i++ )
 	{
@@ -212,32 +230,42 @@ sub _generate
 				$_; 
 		    } @args;
 			
+			$self->{'state'} = $_->{'state'};
+			
 			if(ref $name)
 			{
 				@{$self->{'record'}}{@$name} = $_->{'generator'}($self, @args);
 			} else {
 				( $self->{'record'}{$name} ) = $_->{'generator'}($self, @args);
 			}
+			
+			$_->{'state'} = $self->{'state'}; #FIXME $_ after function call
 		}
 		
 		foreach(@{$self->{'subtables'}})
 		{
+			my $name = $_->{'name'};
 			my $ret = _generate($_->{'table'}, int(rand($_->{'max'}-$_->{'min'}+1)+$_->{'min'}));
-			$self->{'record'}{$_->{'name'}} = $ret; #FIXME $_ after call
+			$self->{'record'}{$name} = $ret if $ret;
 		}
+		
+		my $ret = $self->{'output'}->($self->{'record'});
+		push @output, $ret if $ret;
 	}
+	
+	return \@output if @output;
 }
 
 sub _setup {
 	my $self = shift;
+	my $setup = shift || $self->{'setup'};
 	
 	return if $self->{'no_setup'};
-	$self->setup(...);
+	$setup->($self->name, @{$self->{'columns'}});
 	
 	foreach(@{$self->{'subtables'}})
 	{
-		#FIXME call parents setup method on subtable
-		_setup($_->{'table'})
+		_setup($_->{'table'}, $setup);
 	}
 }
 
